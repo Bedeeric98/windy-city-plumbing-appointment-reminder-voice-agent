@@ -1,0 +1,253 @@
+{
+  "name": "Windy City Plumbing Inbound Callback Agent",
+  "description": "",
+  "model": "moonshotai/Kimi-K2.6",
+  "greeting": "Hello, thanks for calling back",
+  "voice_settings": {
+    "voice": "Telnyx.Ultra.00000000-0000-4000-8000-000000000012",
+    "community": null,
+    "voice_speed": 0.9,
+    "background_audio": {
+      "type": "predefined_media",
+      "value": "office",
+      "volume": 0.2
+    },
+    "tool_call_audio": null,
+    "temperature": null,
+    "repetition_penalty": null,
+    "top_p": null,
+    "similarity_boost": 0.5,
+    "style": 0.0,
+    "use_speaker_boost": true,
+    "language_boost": "English",
+    "language": null,
+    "language_voices": null,
+    "expressive_mode": true,
+    "pronunciation_dict_id": null,
+    "region": null
+  },
+  "transcription": {
+    "model": "deepgram/flux",
+    "fallback_models": null,
+    "language": "en",
+    "region": null,
+    "settings": {
+      "smart_format": null,
+      "numerals": null,
+      "eot_threshold": 0.6,
+      "eot_timeout_ms": 1500,
+      "eager_eot_threshold": 0.4,
+      "keyterm": null,
+      "eager_turn_probability": null,
+      "final_turn_probability": null,
+      "remove_disfluencies": null,
+      "end_of_turn_confidence_threshold": null,
+      "prompt": null,
+      "min_turn_silence": null,
+      "max_turn_silence": null,
+      "interim_results": null,
+      "enable_endpoint_detection": null,
+      "max_endpoint_delay_ms": null,
+      "context": null,
+      "language_hints": null
+    },
+    "challenger": null
+  },
+  "interruption_settings": {
+    "enable": true,
+    "disable_greeting_interruption": false,
+    "start_speaking_plan": {
+      "wait_seconds": 0.1,
+      "transcription_endpointing_plan": {
+        "on_punctuation_seconds": 0.1,
+        "on_no_punctuation_seconds": 0.1,
+        "on_number_seconds": 0.1
+      },
+      "custom_endpointing_rules": null
+    },
+    "interrupt_prediction_threshold": 0.0
+  },
+  "telephony_settings": {
+    "time_limit_secs": 1800,
+    "user_idle_timeout_secs": null,
+    "user_idle_reply_secs": 10,
+    "noise_suppression": "krisp",
+    "voicemail_detection": null
+  },
+  "insight_settings": {
+    "model": null
+  },
+  "dynamic_variables": [
+    "appointment_time",
+    "day",
+    "first_name",
+    "last_name",
+    "one_week_availability",
+    "service_type",
+    "soonest_availability",
+    "user_number"
+  ],
+  "tools": [
+    {
+      "tool_id": "tool-00000000-0000-4000-8000-000000000013",
+      "type": "webhook",
+      "timeout_ms": 25000,
+      "shared": true,
+      "name": "check_availability_windycity",
+      "webhook": {
+        "name": "check_availability_windycity",
+        "description": "Check the calendar for open slots and availability",
+        "url": "https://your-n8n-instance.example.com/webhook/YOUR_WEBHOOK_PATH",
+        "method": "POST",
+        "path_parameters": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "query_parameters": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "body_parameters": {
+          "type": "object",
+          "properties": {
+            "tool_name": {
+              "type": "string",
+              "enum": [
+                "check_availability_windycity"
+              ],
+              "description": "Constant identifier for the function being called. Must always be 'check_availability_windycity'."
+            },
+            "soonest_availability": {
+              "type": "string",
+              "description": "Human-readable earliest available appointment"
+            },
+            "full_week_availability": {
+              "type": "string",
+              "description": "Human-readable form of all available slots for the upcoming 7 days"
+            }
+          },
+          "required": [
+            "tool_name",
+            "soonest_availability",
+            "full_week_availability"
+          ]
+        },
+        "async": false
+      }
+    },
+    {
+      "tool_id": "tool-00000000-0000-4000-8000-000000000014",
+      "type": "webhook",
+      "timeout_ms": 15000,
+      "shared": true,
+      "name": "reschedule_windycity",
+      "webhook": {
+        "name": "reschedule_windycity",
+        "description": "When users agree on an available time, book it on the calendar. The time parameter should be a full absolute date, such as \"Thursday, 2025 May 5/15/2025 10 AM\" (even if the user asks for a relative date such as \"next Tuesday\", convert it to absolute date). The time should always be IN THE FUTURE. Always fetch current date and time by calling the tool `date_and_time_new_york`. The timezone parameter should always be \"America/New_York\". The name parameter should be {{first_name}} {{last_name}}.",
+        "url": "https://your-n8n-instance.example.com/webhook/YOUR_WEBHOOK_PATH",
+        "method": "POST",
+        "path_parameters": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "query_parameters": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "body_parameters": {
+          "type": "object",
+          "properties": {
+            "tool_name": {
+              "type": "string",
+              "enum": [
+                "reschedule_windycity"
+              ],
+              "description": "Constant identifier for the function being called. Must always be 'reschedule_windycity'."
+            },
+            "last_name": {
+              "type": "string",
+              "description": "The caller's last name. Optional — include only if provided by the caller."
+            },
+            "phone_number": {
+              "type": "string",
+              "description": "The caller's phone number in full international or local format."
+            },
+            "first_name": {
+              "type": "string",
+              "description": "The caller's first name."
+            },
+            "absolute_time": {
+              "type": "string",
+              "description": "The ISO timestamp of the chosen appointment time."
+            }
+          },
+          "required": [
+            "tool_name",
+            "phone_number",
+            "first_name",
+            "absolute_time"
+          ],
+          "additionalProperties": false
+        },
+        "async": false
+      }
+    },
+    {
+      "tool_id": "tool-00000000-0000-4000-8000-000000000016",
+      "type": "webhook",
+      "timeout_ms": 5000,
+      "shared": true,
+      "name": "date_and_time_new_york_windycity",
+      "webhook": {
+        "name": "date_and_time_new_york_windycity",
+        "description": "Use this tool to get the current date and time of the New York timezone (EST)",
+        "url": "https://your-n8n-instance.example.com/webhook/YOUR_WEBHOOK_PATH",
+        "method": "POST",
+        "path_parameters": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "query_parameters": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "body_parameters": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string",
+              "description": "The city for which the current date and time is requested."
+            },
+            "currentDateTime": {
+              "type": "string",
+              "description": "The current date and time in ISO 8601 format for the specified city."
+            }
+          },
+          "required": [
+            "city",
+            "currentDateTime"
+          ],
+          "additionalProperties": false
+        },
+        "async": false
+      }
+    },
+    {
+      "tool_id": "tool-00000000-0000-4000-8000-000000000017",
+      "type": "hangup",
+      "timeout_ms": 5000,
+      "shared": true,
+      "name": "Default hangup",
+      "hangup": {
+        "description": "To be used whenever the conversation has ended and it would be appropriate to hangup the call."
+      }
+    }
+  ],
+  "dynamic_variables_webhook": "https://your-n8n-instance.example.com/webhook/YOUR_WEBHOOK_PATH"
+}
